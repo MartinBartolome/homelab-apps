@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-config
+  namespace: pihole
+data:
+  TZ: "Europe/Berlin"
+  WEBPASSWORD: "changeme"        # Bitte ändern! Idealerweise via Secret.
+  PIHOLE_DNS_: "8.8.8.8;8.8.4.4"
+  DNSMASQ_LISTENING: "all"
+  DNSSEC: "false"
+  DNS_BOGUS_PRIV: "true"
+  DNS_FQDN_REQUIRED: "true"
+  FTLCONF_LOCAL_IPV4: ""         # Optionale statische lokale IP für DHCP
+  # Weitere Optionen: https://github.com/pi-hole/docker-pi-hole#environment-variables

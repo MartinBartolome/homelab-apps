@@ -1,0 +1,5 @@
+# Keine Secrets in Git
+*.secret
+*.key
+*.pem
+secrets/

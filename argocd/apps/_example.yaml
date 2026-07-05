@@ -1,0 +1,23 @@
+# Vorlage für eine neue ArgoCD Application
+# Kopieren, umbenennen (APPNAME.yaml) und anpassen.
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: APPNAME           # <-- App-Name (eindeutig)
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/DEIN_USERNAME/homelab-apps.git
+    targetRevision: main
+    path: apps/APPNAME    # <-- Pfad zum App-Verzeichnis
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: APPNAME    # <-- Ziel-Namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

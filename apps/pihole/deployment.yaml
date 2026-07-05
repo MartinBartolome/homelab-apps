@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole
+  namespace: pihole
+  labels:
+    app: pihole
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pihole
+  strategy:
+    type: Recreate   # Nur eine Instanz, da DNS-Port exklusiv gebunden wird
+  template:
+    metadata:
+      labels:
+        app: pihole
+    spec:
+      containers:
+        - name: pihole
+          image: pihole/pihole:2024.07.0
+          envFrom:
+            - configMapRef:
+                name: pihole-config
+          ports:
+            - name: dns-tcp
+              containerPort: 53
+              protocol: TCP
+            - name: dns-udp
+              containerPort: 53
+              protocol: UDP
+            - name: web
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: pihole-etc
+              mountPath: /etc/pihole
+            - name: pihole-dnsmasq
+              mountPath: /etc/dnsmasq.d
+          livenessProbe:
+            httpGet:
+              path: /admin/
+              port: web
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /admin/
+              port: web
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: pihole-etc
+          persistentVolumeClaim:
+            claimName: pihole-etc
+        - name: pihole-dnsmasq
+          persistentVolumeClaim:
+            claimName: pihole-dnsmasq
