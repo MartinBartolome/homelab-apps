@@ -22,7 +22,7 @@ spec:
       protocol: TCP
       nodePort: 30053
 ---
-# Web-UI – ClusterIP, Zugriff via kubectl port-forward oder Ingress
+# Web-UI – NodePort, erreichbar über jede Host-IP (u.a. Tailscale) ohne port-forward
 apiVersion: v1
 kind: Service
 metadata:
@@ -31,7 +31,7 @@ metadata:
   labels:
     app: pihole
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: pihole
   ports:
@@ -39,3 +39,4 @@ spec:
       port: 80
       targetPort: 80
       protocol: TCP
+      nodePort: 30080
