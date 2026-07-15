@@ -50,6 +50,7 @@ homelab-apps/
 |---|---|---|
 | [Pi-hole](apps/pihole/) | `pihole` | DNS-Blocker / lokaler DNS-Resolver |
 | [Jellyfin](apps/jellyfin/) | `jellyfin` | Mediaserver – bindet NAS-Freigaben (`Filme`, `Serien`, `Videos`) per hostPath ein |
+| [Tailscale Operator](apps/tailscale-operator/) | `tailscale` | Erlaubt es, Services per Annotation explizit im Tailnet freizugeben |
 
 ---
 
@@ -95,6 +96,23 @@ http://192.168.68.17:30096
 ```
 
 Die NAS-Freigaben (`\\192.168.68.10\Filme`, `\Serien`, `\Videos`) werden per CIFS/SMB auf dem k3s-Node unter `/mnt/nas/Filme`, `/mnt/nas/Serien`, `/mnt/nas/Videos` gemountet (Benutzername/Passwort via `homelab-setup`, Rolle `nas-mounts`) und per `hostPath` direkt in den Jellyfin-Pod eingebunden (`/media/Filme`, `/media/Serien`, `/media/Videos`).
+
+Die Ersteinrichtung (Sprache, Admin-User, Bibliotheken) erfolgt manuell über die Jellyfin-Weboberfläche.
+
+---
+
+## Explizite Tailscale-Erreichbarkeit
+
+Bisher war eine App nur "zufällig" via Tailscale erreichbar, weil der Host im Tailnet ist und `NodePort`-Services auf allen Interfaces binden. Mit dem [Tailscale Kubernetes Operator](apps/tailscale-operator/) lässt sich das jetzt **explizit im Manifest deklarieren**:
+
+```yaml
+metadata:
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "jellyfin"
+```
+
+Details zur (einmaligen) Einrichtung des Operators: [apps/tailscale-operator/README.md](apps/tailscale-operator/README.md).
 
 ---
 

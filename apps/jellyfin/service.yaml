@@ -1,4 +1,6 @@
 # Web-UI – NodePort, erreichbar über jede Host-IP (u.a. Tailscale) ohne port-forward
+# Zusätzlich explizit über den Tailscale Kubernetes Operator im Tailnet
+# erreichbar unter jellyfin.<dein-tailnet>.ts.net (siehe apps/tailscale-operator/README.md)
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,6 +8,9 @@ metadata:
   namespace: jellyfin
   labels:
     app: jellyfin
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "jellyfin"
 spec:
   type: NodePort
   selector:
