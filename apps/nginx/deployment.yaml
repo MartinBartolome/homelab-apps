@@ -17,11 +17,12 @@ spec:
     spec:
       initContainers:
         - name: gen-self-signed-cert
-          image: nginx:1.27-alpine
+          image: alpine:3.20
           command:
             - sh
             - -c
             - |
+              apk add --no-cache openssl
               openssl req -x509 -nodes -days 3650 \
                 -newkey rsa:2048 \
                 -keyout /etc/nginx/certs/tls.key \
