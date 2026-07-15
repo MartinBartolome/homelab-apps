@@ -1,6 +1,6 @@
-# NodePort, erreichbar über jede Host-IP (u.a. Tailscale) ohne port-forward.
-# jellyfin.martinbartolome.ch wird per Pi-hole Local-DNS-Record auf die
-# Tailscale-IP des Homelab-Hosts aufgelöst (siehe apps/nginx/README.md).
+# LoadBalancer (k3s ServiceLB) auf Standard-Port 80, damit der Browser ohne
+# expliziten Port zugreifen kann. Voraussetzung: Traefik (k3s-Standard-Ingress,
+# belegt sonst Port 80/443) ist deaktiviert, siehe homelab-setup/roles/k3s.
 apiVersion: v1
 kind: Service
 metadata:
@@ -9,7 +9,8 @@ metadata:
   labels:
     app: nginx
 spec:
-  type: NodePort
+  type: LoadBalancer
+  externalTrafficPolicy: Local
   selector:
     app: nginx
   ports:
@@ -17,4 +18,3 @@ spec:
       port: 80
       targetPort: 80
       protocol: TCP
-      nodePort: 30800
