@@ -21,7 +21,7 @@ cp -r apps/_template apps/APPNAME
 vim apps/APPNAME/deployment.yaml
 
 # 3. ArgoCD Application anlegen
-cp argocd/apps/_example.yaml argocd/apps/APPNAME.yaml
+cp argocd/_example.yaml argocd/apps/APPNAME.yaml
 vim argocd/apps/APPNAME.yaml
 
 # 4. Committen – ArgoCD deployed automatisch

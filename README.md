@@ -22,9 +22,9 @@ ArgoCD überwacht dieses Repo mit dem **App-of-Apps**-Pattern:
 ```
 homelab-apps/
 ├── argocd/
+│   ├── _example.yaml      # Vorlage für neue Apps (liegt bewusst NICHT in apps/, da app-of-apps sonst versucht, sie anzuwenden)
 │   └── apps/              # Eine ArgoCD Application pro App (vom Ansible-Bootstrap angelegt)
-│       ├── pihole.yaml
-│       └── _example.yaml  # Vorlage für neue Apps
+│       └── pihole.yaml
 └── apps/
     ├── pihole/            # Pi-hole DNS-Blocker
     │   ├── namespace.yaml
@@ -58,7 +58,9 @@ homelab-apps/
 
 1. Verzeichnis anlegen: `apps/APPNAME/`
 2. Kubernetes-Manifeste rein (Deployment, Service, …)
-3. ArgoCD-Application anlegen: `argocd/apps/APPNAME.yaml` (Vorlage: `argocd/apps/_example.yaml`)
+3. ArgoCD-Application anlegen: `argocd/apps/APPNAME.yaml` (Vorlage: `argocd/_example.yaml`)
+
+   > ⚠️ Die Vorlage liegt bewusst außerhalb von `argocd/apps/` – dieser Ordner wird von `app-of-apps` überwacht und jede Datei darin 1:1 als `Application` angewendet. Läge `_example.yaml` dort, würde ArgoCD versuchen, sie mit dem ungültigen Namen `APPNAME` anzuwenden und der Sync würde fehlschlagen (`a lowercase RFC 1123 subdomain must consist of...`).
 4. Committen und pushen – ArgoCD deployt automatisch
 
 ### Minimalbeispiel
@@ -66,7 +68,7 @@ homelab-apps/
 ```bash
 mkdir apps/meine-app
 cp apps/_template/* apps/meine-app/
-cp argocd/apps/_example.yaml argocd/apps/meine-app.yaml
+cp argocd/_example.yaml argocd/apps/meine-app.yaml
 # Manifeste und ArgoCD-App anpassen
 git add . && git commit -m "feat: meine-app hinzufügen"
 git push

@@ -20,8 +20,14 @@ Diese Schritte lassen sich nicht per Git/ArgoCD abbilden (Tailscale-Account-Konf
    ```
 
 2. **OAuth-Client** anlegen: [Trust credentials](https://login.tailscale.com/admin/settings/trust-credentials) → *+ Credential*
-   - Scopes: `General > Services` (Read/Write), `Devices > Core` (Read/Write)
+   - Scopes: `General > Services` (Read/Write), `Devices > Core` (Read/Write), `Keys > Auth Keys` (Read/Write)
    - Tag: `tag:k8s-operator`
+
+   > ⚠️ Ohne `Keys > Auth Keys` scheitert der Operator-Start mit
+   > `creating operator authkey: ... does not have enough permissions (403)`.
+   > Scopes lassen sich bei einem bestehenden OAuth-Client nicht nachträglich
+   > ändern – in dem Fall einen neuen Client mit allen drei Scopes anlegen und
+   > das Secret (Schritt 3) sowie den Operator-Pod neu erstellen.
 
 3. **Secret** im Cluster anlegen (Namespace muss existieren, wird beim ersten ArgoCD-Sync per `CreateNamespace=true` erzeugt):
 
