@@ -1,4 +1,6 @@
-# DNS-Service (UDP+TCP Port 53) – NodePort damit der Host-DNS nutzbar ist
+# DNS-Service (UDP+TCP Port 53) – LoadBalancer (k3s ServiceLB), damit Port 53
+# direkt auf der Host-IP gebunden wird (NodePort wäre auf 30000–32767
+# beschränkt, aber Router/Geräte erwarten DNS immer auf Port 53).
 # Zusätzlich explizit über den Tailscale Kubernetes Operator im Tailnet
 # erreichbar unter pihole-dns.<dein-tailnet>.ts.net:53 (siehe
 # apps/tailscale-operator/README.md) – z.B. um Pi-hole als Nameserver im
@@ -14,7 +16,7 @@ metadata:
     tailscale.com/expose: "true"
     tailscale.com/hostname: "pihole-dns"
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: pihole
   ports:
@@ -22,12 +24,10 @@ spec:
       port: 53
       targetPort: 53
       protocol: UDP
-      nodePort: 30053
     - name: dns-tcp
       port: 53
       targetPort: 53
       protocol: TCP
-      nodePort: 30053
 ---
 # Web-UI – NodePort, erreichbar über jede Host-IP (u.a. Tailscale) ohne port-forward
 # Zusätzlich explizit über den Tailscale Kubernetes Operator im Tailnet

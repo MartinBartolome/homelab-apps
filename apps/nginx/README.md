@@ -38,6 +38,14 @@ greift, muss Pi-hole als DNS-Server für das jeweilige Gerät genutzt werden:
 - **Einzelnes Gerät** (z.B. nur der TV): DNS-Server manuell in dessen
   Netzwerkeinstellungen auf die LAN-IP von Pi-hole setzen.
 
+> Im Router als DNS-Server ebenfalls die **LAN-IP** eintragen (`192.168.68.17`),
+> auf Standard-Port 53 – Router-DNS-Einstellungen erlauben normalerweise keinen
+> anderen Port. Der `pihole-dns`-Service läuft deshalb als `type: LoadBalancer`
+> statt `NodePort` (siehe [apps/pihole/service.yaml](../pihole/service.yaml)),
+> damit k3s' ServiceLB Port 53 direkt auf der Host-IP bindet – ein NodePort
+> wäre auf den Bereich 30000–32767 beschränkt.
+
+
 nginx läuft als `NodePort` (Port `30800`) und ist damit automatisch über jede
 Host-IP erreichbar (LAN- wie Tailscale-IP) – kein zusätzliches Setup nötig
 (gleiches Prinzip wie bei [Jellyfin](../jellyfin/) und [Pi-hole](../pihole/)).
