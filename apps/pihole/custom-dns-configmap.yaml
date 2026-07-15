@@ -1,0 +1,15 @@
+# Statische lokale DNS-Einträge für Pi-hole (Local DNS Records), als Code
+# statt manuell über die Web-UI gepflegt. Wird als einzelne Datei in
+# /etc/pihole/custom.list gemountet (Format wie /etc/hosts: "<IP> <Domain>").
+#
+# WICHTIG: Nach einer Änderung greift der neue Inhalt erst nach einem Reload:
+#   kubectl exec -n pihole deploy/pihole -- pihole restartdns reloadlists
+# (oder einfach den Pod neu starten: kubectl rollout restart deploy/pihole -n pihole)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-custom-dns
+  namespace: pihole
+data:
+  custom.list: |
+    192.168.68.17 jellyfin.martinbartolome.ch
