@@ -11,4 +11,9 @@ data:
   DNSSEC: "false"
   DNS_BOGUS_PRIV: "true"
   DNS_FQDN_REQUIRED: "true"
+  # Muss ein gültiger, nicht-leerer Wert sein: Ein leerer String bricht das
+  # Docker-Erststart-Setup-Skript vorzeitig ab (bevor setupVars.conf und
+  # /etc/dnsmasq.d/01-pihole.conf erzeugt werden) – "" ist der Default im
+  # Image selbst, ein reines Entfernen dieses Keys reicht daher NICHT aus.
+  FTLCONF_LOCAL_IPV4: "192.168.68.17"
   # Weitere Optionen: https://github.com/pi-hole/docker-pi-hole#environment-variables
