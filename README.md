@@ -38,6 +38,11 @@ homelab-apps/
     │   ├── pvc.yaml
     │   ├── deployment.yaml
     │   └── service.yaml
+    ├── nginx/             # Reverse Proxy für Custom-Domains (z.B. jellyfin.martinbartolome.ch)
+    │   ├── namespace.yaml
+    │   ├── configmap.yaml
+    │   ├── deployment.yaml
+    │   └── service.yaml
     └── _template/         # Vorlage für neue Apps
         └── README.md
 ```
@@ -51,6 +56,7 @@ homelab-apps/
 | [Pi-hole](apps/pihole/) | `pihole` | DNS-Blocker / lokaler DNS-Resolver |
 | [Jellyfin](apps/jellyfin/) | `jellyfin` | Mediaserver – bindet NAS-Freigaben (`Filme`, `Serien`, `Videos`) per hostPath ein |
 | [Tailscale Operator](apps/tailscale-operator/) | `tailscale` | Erlaubt es, Services per Annotation explizit im Tailnet freizugeben |
+| [nginx](apps/nginx/) | `nginx` | Reverse Proxy, macht Apps über eigene Domains (z.B. `jellyfin.martinbartolome.ch`) im Tailnet erreichbar |
 
 ---
 
@@ -115,6 +121,17 @@ metadata:
 ```
 
 Details zur (einmaligen) Einrichtung des Operators: [apps/tailscale-operator/README.md](apps/tailscale-operator/README.md).
+
+---
+
+## Zugriff auf Jellyfin über eigene Domain (jellyfin.martinbartolome.ch)
+
+Zusätzlich zu NodePort und Tailscale-Operator-Hostname ist Jellyfin über einen
+[nginx](apps/nginx/) Reverse Proxy unter `https://jellyfin.martinbartolome.ch`
+erreichbar (nur innerhalb des Tailnets, per Pi-hole-DNS aufgelöst).
+
+Einmalige manuelle Einrichtung (DNS-Eintrag in Pi-hole, Nameserver in
+Tailscale hinterlegen): [apps/nginx/README.md](apps/nginx/README.md).
 
 ---
 
