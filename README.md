@@ -122,6 +122,8 @@ metadata:
 
 Details zur (einmaligen) Einrichtung des Operators: [apps/tailscale-operator/README.md](apps/tailscale-operator/README.md).
 
+Bereits so konfiguriert: [Jellyfin](apps/jellyfin/service.yaml) (`jellyfin.<tailnet>.ts.net`) und [Pi-hole](apps/pihole/service.yaml) (Web-UI unter `pihole.<tailnet>.ts.net`, Port 80; DNS unter `pihole-dns.<tailnet>.ts.net`, Port 53).
+
 ---
 
 ## Zugriff auf Jellyfin über eigene Domain (jellyfin.martinbartolome.ch)

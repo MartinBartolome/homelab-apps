@@ -1,4 +1,8 @@
 # DNS-Service (UDP+TCP Port 53) – NodePort damit der Host-DNS nutzbar ist
+# Zusätzlich explizit über den Tailscale Kubernetes Operator im Tailnet
+# erreichbar unter pihole-dns.<dein-tailnet>.ts.net:53 (siehe
+# apps/tailscale-operator/README.md) – z.B. um Pi-hole als Nameserver im
+# Tailnet (Tailscale Admin Console → DNS) zu hinterlegen.
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,6 +10,9 @@ metadata:
   namespace: pihole
   labels:
     app: pihole
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "pihole-dns"
 spec:
   type: NodePort
   selector:
@@ -23,6 +30,8 @@ spec:
       nodePort: 30053
 ---
 # Web-UI – NodePort, erreichbar über jede Host-IP (u.a. Tailscale) ohne port-forward
+# Zusätzlich explizit über den Tailscale Kubernetes Operator im Tailnet
+# erreichbar unter pihole.<dein-tailnet>.ts.net (Port 80, kein NodePort nötig)
 apiVersion: v1
 kind: Service
 metadata:
@@ -30,6 +39,9 @@ metadata:
   namespace: pihole
   labels:
     app: pihole
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "pihole"
 spec:
   type: NodePort
   selector:

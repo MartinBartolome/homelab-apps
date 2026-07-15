@@ -58,4 +58,6 @@ Der Operator legt dafür einen zusätzlichen Proxy-Pod an, der als eigenes Gerä
 kubectl get svc -n <namespace> <service-name>
 ```
 
-Beispiel bereits konfiguriert für Jellyfin: [apps/jellyfin/service.yaml](../jellyfin/service.yaml).
+Beispiele bereits konfiguriert:
+- Jellyfin: [apps/jellyfin/service.yaml](../jellyfin/service.yaml)
+- Pi-hole (Web-UI + DNS): [apps/pihole/service.yaml](../pihole/service.yaml)
