@@ -18,3 +18,7 @@ spec:
       port: 80
       targetPort: 80
       protocol: TCP
+    - name: web-tls
+      port: 443
+      targetPort: 443
+      protocol: TCP
