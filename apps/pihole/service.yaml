@@ -1,6 +1,10 @@
 # DNS-Service (UDP+TCP Port 53) – LoadBalancer (k3s ServiceLB), damit Port 53
 # direkt auf der Host-IP gebunden wird (NodePort wäre auf 30000–32767
 # beschränkt, aber Router/Geräte erwarten DNS immer auf Port 53).
+# externalTrafficPolicy: Local vermeidet ein zusätzliches SNAT beim
+# Weiterleiten an den Pod (Standard "Cluster" hat auf Single-Node-k3s mit
+# ServiceLB dazu geführt, dass DNS-Antworten den Client nie erreicht haben –
+# bekanntes k3s/klipper-lb-Problem bei UDP-Diensten wie DNS).
 # Zusätzlich explizit über den Tailscale Kubernetes Operator im Tailnet
 # erreichbar unter pihole-dns.<dein-tailnet>.ts.net:53 (siehe
 # apps/tailscale-operator/README.md) – z.B. um Pi-hole als Nameserver im
@@ -17,6 +21,7 @@ metadata:
     tailscale.com/hostname: "pihole-dns"
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local
   selector:
     app: pihole
   ports:
