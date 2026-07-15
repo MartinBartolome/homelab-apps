@@ -127,11 +127,15 @@ Details zur (einmaligen) Einrichtung des Operators: [apps/tailscale-operator/REA
 ## Zugriff auf Jellyfin über eigene Domain (jellyfin.martinbartolome.ch)
 
 Zusätzlich zu NodePort und Tailscale-Operator-Hostname ist Jellyfin über einen
-[nginx](apps/nginx/) Reverse Proxy unter `https://jellyfin.martinbartolome.ch`
-erreichbar (nur innerhalb des Tailnets, per Pi-hole-DNS aufgelöst).
+[nginx](apps/nginx/) Reverse Proxy unter `http://jellyfin.martinbartolome.ch`
+erreichbar – im gesamten Heimnetz (WLAN/LAN, z.B. für einen Smart-TV) sowie
+optional auch von unterwegs übers Tailnet.
 
-Einmalige manuelle Einrichtung (DNS-Eintrag in Pi-hole, Nameserver in
-Tailscale hinterlegen): [apps/nginx/README.md](apps/nginx/README.md).
+Der DNS-Eintrag liegt als Code in [apps/pihole/custom-dns-configmap.yaml](apps/pihole/custom-dns-configmap.yaml)
+(kein manueller Schritt in der Pi-hole-UI nötig). Details, Voraussetzungen
+(Pi-hole muss als DNS-Server der Geräte genutzt werden) und die optionale
+Tailscale-Nameserver-Einrichtung für reinen Remote-Zugriff:
+[apps/nginx/README.md](apps/nginx/README.md).
 
 ---
 

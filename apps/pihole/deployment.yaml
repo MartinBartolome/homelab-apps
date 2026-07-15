@@ -38,6 +38,9 @@ spec:
               mountPath: /etc/pihole
             - name: pihole-dnsmasq
               mountPath: /etc/dnsmasq.d
+            - name: pihole-custom-dns
+              mountPath: /etc/pihole/custom.list
+              subPath: custom.list
           livenessProbe:
             httpGet:
               path: /admin/
@@ -64,3 +67,6 @@ spec:
         - name: pihole-dnsmasq
           persistentVolumeClaim:
             claimName: pihole-dnsmasq
+        - name: pihole-custom-dns
+          configMap:
+            name: pihole-custom-dns
