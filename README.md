@@ -32,6 +32,12 @@ homelab-apps/
     │   ├── pvc.yaml
     │   ├── deployment.yaml
     │   └── service.yaml
+    ├── jellyfin/          # Jellyfin Mediaserver
+    │   ├── namespace.yaml
+    │   ├── configmap.yaml
+    │   ├── pvc.yaml
+    │   ├── deployment.yaml
+    │   └── service.yaml
     └── _template/         # Vorlage für neue Apps
         └── README.md
 ```
@@ -43,6 +49,7 @@ homelab-apps/
 | App | Namespace | Beschreibung |
 |---|---|---|
 | [Pi-hole](apps/pihole/) | `pihole` | DNS-Blocker / lokaler DNS-Resolver |
+| [Jellyfin](apps/jellyfin/) | `jellyfin` | Mediaserver – bindet NAS-Freigaben (`Filme`, `Serien`, `Videos`) per hostPath ein |
 
 ---
 
@@ -79,6 +86,18 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 ---
 
+## Zugriff auf Jellyfin
+
+Jellyfin läuft als `NodePort`-Service und ist direkt über die Homelab-PC-IP erreichbar (kein Port-Forward nötig):
+
+```
+http://192.168.68.17:30096
+```
+
+Die NAS-Freigaben (`\\192.168.68.10\Filme`, `\Serien`, `\Videos`) werden per CIFS/SMB auf dem k3s-Node unter `/mnt/nas/Filme`, `/mnt/nas/Serien`, `/mnt/nas/Videos` gemountet (Benutzername/Passwort via `homelab-setup`, Rolle `nas-mounts`) und per `hostPath` direkt in den Jellyfin-Pod eingebunden (`/media/Filme`, `/media/Serien`, `/media/Videos`).
+
+---
+
 ## Nützliche kubectl-Befehle
 
 ```bash
@@ -90,6 +109,12 @@ kubectl get all -n pihole
 
 # Logs Pi-hole
 kubectl logs -n pihole -l app=pihole -f
+
+# Jellyfin Status
+kubectl get all -n jellyfin
+
+# Logs Jellyfin
+kubectl logs -n jellyfin -l app=jellyfin -f
 
 # Manuell sync erzwingen (normalerweise nicht nötig)
 kubectl annotate application pihole -n argocd argocd.argoproj.io/refresh=hard
