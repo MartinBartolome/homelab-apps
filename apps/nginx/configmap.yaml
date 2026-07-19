@@ -7,8 +7,16 @@ metadata:
   namespace: nginx
 data:
   jellyfin.conf: |
+    # Reiner HTTP-Request (Port 80) wird immer auf HTTPS umgeleitet - ohne das
+    # würde nginx die Seite auch unverschlüsselt ausliefern (z.B. wenn die
+    # Domain ohne "https://" eingetippt wird), der Browser zeigt dann
+    # "Not Secure" an, obwohl das TLS-Zertifikat korrekt ist.
     server {
       listen 80;
+      server_name jellyfin.martinbartolome.ch;
+      return 301 https://$host$request_uri;
+    }
+    server {
       listen 443 ssl;
       server_name jellyfin.martinbartolome.ch;
 
@@ -39,8 +47,14 @@ data:
       }
     }
   homeassistant.conf: |
+    # Reiner HTTP-Request (Port 80) wird immer auf HTTPS umgeleitet - siehe
+    # Kommentar in jellyfin.conf.
     server {
       listen 80;
+      server_name homeassistant.martinbartolome.ch;
+      return 301 https://$host$request_uri;
+    }
+    server {
       listen 443 ssl;
       server_name homeassistant.martinbartolome.ch;
 
