@@ -9,3 +9,18 @@ spec:
   resources:
     requests:
       storage: 5Gi
+---
+# Persistente Ablage für den Matter Server (Fabric-/Node-Daten, PAA-Zertifikate
+# der kommissionierten Matter-Geräte, u.a. die TadoX-Bridge). Getrennt vom
+# HA-Config-PVC, damit ein Reset des einen nicht den anderen betrifft.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: matter-server-data
+  namespace: homeassistant
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

@@ -42,6 +42,16 @@ erfordern (die aus Sicherheitsgründen nicht im Repo landen sollten):
 5. **Dyson-Luftreiniger**: *Integration hinzufügen → Dyson* – Setup per
    MyDyson-Account-Login oder WLAN-Sticker-Daten des Geräts (siehe
    [Doku](https://github.com/libdyson-wg/ha-dyson#setup)).
+6. **Matter / TadoX-Bridge**: *Integration hinzufügen → Matter (BETA)* –
+   als Server-URL `ws://localhost:5580/ws` eingeben (der Matter Server läuft
+   als Sidecar-Container im selben Pod, siehe [`deployment.yaml`](deployment.yaml)),
+   anschließend den Pairing-/Setup-Code der TadoX-Bridge eingeben (App oder
+   Aufdruck auf der Bridge). Kommissionierung ist ein interaktiver Vorgang
+   und lässt sich nicht per YAML vorkonfigurieren.
+   > Hinweis: Damit die mDNS/IPv6-Multicast-basierte Kommissionierung im
+   > lokalen Netz funktioniert, läuft der komplette Pod mit `hostNetwork: true`
+   > (siehe [`deployment.yaml`](deployment.yaml)) – das Pod-Overlay-Netzwerk
+   > von k3s leitet Multicast sonst nicht zuverlässig weiter.
 
 > Diese Schritte sind identisch mit der Ersteinrichtung von
 > [Jellyfin](../jellyfin/) (Sprache, Admin-User, Bibliotheken), die laut
@@ -66,4 +76,7 @@ kubectl logs -n homeassistant -l app=homeassistant -f
 
 # Custom-Integrationen im Pod prüfen
 kubectl exec -n homeassistant deploy/homeassistant -- ls /config/custom_components
+
+# Matter-Server-Logs separat prüfen (eigener Container im selben Pod)
+kubectl logs -n homeassistant -l app=homeassistant -c matter-server -f
 ```

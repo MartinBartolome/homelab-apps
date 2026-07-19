@@ -54,5 +54,10 @@ data:
     #     vorinstalliert (siehe deployment.yaml, initContainer
     #     "install-custom-integrations") und erscheinen direkt in der
     #     Integrationssuche, keine manuelle HACS-Installation nötig.
+    #   - Matter (u.a. TadoX-Bridge): Der Matter Server läuft als Sidecar
+    #     (siehe deployment.yaml), die Integration selbst wird über
+    #     "Matter" hinzugefügt (URL: ws://localhost:5580/ws), danach den
+    #     Pairing-Code der TadoX-Bridge eingeben – Kommissionierung ist
+    #     ein interaktiver Vorgang und kann nicht automatisiert werden.
     #
     # Details und Links: README.md in diesem Verzeichnis.

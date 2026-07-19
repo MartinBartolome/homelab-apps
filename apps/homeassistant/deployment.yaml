@@ -17,6 +17,15 @@ spec:
       labels:
         app: homeassistant
     spec:
+      # Matter-Kommissionierung (u.a. der TadoX-Bridge) basiert auf
+      # mDNS/IPv6-Multicast im lokalen Netz. Das funktioniert über das
+      # normale Pod-Overlay-Netzwerk von k3s nicht zuverlässig, daher läuft
+      # der gesamte Pod im Host-Netzwerk (wie schon der NodePort-Zugriff auf
+      # die Node-IP nahelegt). dnsPolicy muss dafür explizit umgestellt
+      # werden, sonst funktioniert die Cluster-DNS-Auflösung (z.B. ArgoCD,
+      # andere Services) im Pod nicht mehr.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       initContainers:
         # Kopiert die Seed-configuration.yaml (ConfigMap) einmalig ins PVC –
         # nur beim allerersten Start, damit spätere Änderungen über die
@@ -100,6 +109,31 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "1000m"
+        # Matter Server: eigenständiger WebSocket-Dienst, mit dem sich die
+        # "Matter"-Integration in HA verbindet (HA-Core spricht kein Matter
+        # direkt). Wird für die Kommissionierung der TadoX-Bridge benötigt,
+        # sobald diese Matter-Geräte an HA weiterreichen soll.
+        # Läuft im selben Pod/Host-Netzwerk wie Home Assistant, daher aus
+        # HA per "ws://localhost:5580/ws" erreichbar (siehe README.md).
+        - name: matter-server
+          image: ghcr.io/home-assistant-libs/python-matter-server:stable
+          args:
+            - --storage-path
+            - /data
+          ports:
+            - name: matter-ws
+              containerPort: 5580
+              protocol: TCP
+          volumeMounts:
+            - name: matter-server-data
+              mountPath: /data
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
       volumes:
         - name: homeassistant-config
           persistentVolumeClaim:
@@ -107,3 +141,6 @@ spec:
         - name: config-seed
           configMap:
             name: homeassistant-config-seed
+        - name: matter-server-data
+          persistentVolumeClaim:
+            claimName: matter-server-data
