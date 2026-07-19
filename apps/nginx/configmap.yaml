@@ -12,8 +12,9 @@ data:
       listen 443 ssl;
       server_name jellyfin.martinbartolome.ch;
 
-      # Selbstsigniertes Zertifikat (siehe deployment.yaml initContainer) -
-      # Browser zeigt eine Sicherheitswarnung, Verbindung ist aber verschlüsselt.
+      # Echtes Wildcard-Zertifikat (Sectigo, via IONOS) für *.martinbartolome.ch
+      # - öffentlich vertrauenswürdig, keine Zertifikatswarnung im Browser/App.
+      # Herkunft/Erneuerung: siehe README.md.
       ssl_certificate /etc/nginx/certs/tls.crt;
       ssl_certificate_key /etc/nginx/certs/tls.key;
 
@@ -43,8 +44,9 @@ data:
       listen 443 ssl;
       server_name homeassistant.martinbartolome.ch;
 
-      # Selbstsigniertes Zertifikat (siehe deployment.yaml initContainer) -
-      # Browser zeigt eine Sicherheitswarnung, Verbindung ist aber verschlüsselt.
+      # Echtes Wildcard-Zertifikat (Sectigo, via IONOS) für *.martinbartolome.ch
+      # - öffentlich vertrauenswürdig, keine Zertifikatswarnung im Browser/App.
+      # Herkunft/Erneuerung: siehe README.md.
       ssl_certificate /etc/nginx/certs/tls.crt;
       ssl_certificate_key /etc/nginx/certs/tls.key;
 

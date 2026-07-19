@@ -15,25 +15,6 @@ spec:
       labels:
         app: nginx
     spec:
-      initContainers:
-        - name: gen-self-signed-cert
-          image: alpine:3.20
-          command:
-            - sh
-            - -c
-            - |
-              apk add --no-cache openssl
-              # SAN deckt alle über diesen Proxy erreichbaren Domains ab
-              # (weitere Domain hinzugefügt: neuen DNS-Eintrag ergänzen).
-              openssl req -x509 -nodes -days 3650 \
-                -newkey rsa:2048 \
-                -keyout /etc/nginx/certs/tls.key \
-                -out /etc/nginx/certs/tls.crt \
-                -subj "/CN=jellyfin.martinbartolome.ch" \
-                -addext "subjectAltName=DNS:jellyfin.martinbartolome.ch,DNS:homeassistant.martinbartolome.ch"
-          volumeMounts:
-            - name: nginx-certs
-              mountPath: /etc/nginx/certs
       containers:
         - name: nginx
           image: nginx:1.27-alpine
@@ -74,5 +55,10 @@ spec:
         - name: nginx-config
           configMap:
             name: nginx-config
+        # Echtes (Sectigo-)Wildcard-Zertifikat für *.martinbartolome.ch,
+        # bei IONOS gekauft/ausgestellt. Kommt bewusst NICHT aus Git (privater
+        # Schlüssel!), sondern aus einem manuell angelegten Secret –
+        # siehe README.md ("TLS-Zertifikat einspielen/erneuern").
         - name: nginx-certs
-          emptyDir: {}
+          secret:
+            secretName: wildcard-martinbartolome-ch-tls

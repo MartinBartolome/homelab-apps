@@ -74,14 +74,58 @@ nicht per Git abbildbar – in der
 > [homelab-setup/roles/tailscale](../../../homelab-setup/roles/tailscale/))
 > oder weiterhin den bestehenden `*.ts.net`-Hostnamen des Tailscale-Operators.
 
+## TLS-Zertifikat einspielen/erneuern
+
+Beide Vhosts (`jellyfin.conf`, `homeassistant.conf`) nutzen ein echtes,
+öffentlich vertrauenswürdiges **Wildcard-Zertifikat** `*.martinbartolome.ch`
+(Sectigo, ausgestellt über IONOS) – dadurch gibt es **keine**
+Zertifikatswarnung mehr, im Gegensatz zu einem selbstsignierten Zertifikat.
+Das ist wichtig für Clients, die (anders als ein normaler Browser) das
+Wegklicken einer Warnung nicht erlauben, z.B. die Home-Assistant-Companion-App
+beim Login.
+
+Zertifikat und privater Schlüssel liegen bewusst **nicht in Git** (Secrets!),
+sondern in einem manuell angelegten Kubernetes-`Secret` `wildcard-martinbartolome-ch-tls`
+im Namespace `nginx` (siehe `nginx-certs`-Volume in
+[`deployment.yaml`](deployment.yaml)). ArgoCD verwaltet dieses Secret nicht
+und überschreibt/löscht es daher auch nicht.
+
+**Secret initial anlegen (oder nach Erneuerung aktualisieren):**
+
+1. Bei IONOS herunterladen: *Zertifikat* (Server-Zertifikat) und
+   *Intermediate-Zertifikat* (Chain).
+2. Beide zu einer Fullchain-Datei zusammenfügen (Server-Zertifikat **zuerst**,
+   danach das Intermediate-Zertifikat):
+   ```bash
+   cat zertifikat.crt intermediate.crt > fullchain.pem
+   ```
+3. Secret aus Fullchain + dem privaten Schlüssel (der lokal bei der
+   CSR-Erstellung generiert wurde, liegt nicht bei IONOS) erzeugen:
+   ```bash
+   kubectl create secret tls wildcard-martinbartolome-ch-tls \
+     --namespace nginx \
+     --cert=fullchain.pem \
+     --key=private.key \
+     --dry-run=client -o yaml | kubectl apply -f -
+   ```
+4. nginx neu starten, damit der neue Zertifikatsinhalt gemountet wird
+   (Secret-Volumes werden zwar automatisch aktualisiert, aber erst nach
+   einiger Zeit – ein Neustart wirkt sofort):
+   ```bash
+   kubectl rollout restart deploy/nginx -n nginx
+   ```
+
+> **Ablaufdatum im Blick behalten**: Anders als bei Let's-Encrypt-Zertifikaten
+> (z.B. über `cert-manager`) gibt es hier **keine automatische Erneuerung** –
+> das Zertifikat muss vor Ablauf manuell bei IONOS erneuert und die Schritte
+> oben wiederholt werden.
+
 ## Ergebnis
 
-Im Heimnetz (WLAN/LAN, inkl. TV) kann `http://jellyfin.martinbartolome.ch`
+Im Heimnetz (WLAN/LAN, inkl. TV) kann `https://jellyfin.martinbartolome.ch`
 öffnen → Pi-hole löst die Domain zur LAN-IP des Homelab-Hosts auf → nginx
-(Port 30800) wertet den `Host`-Header aus und leitet an
+(Port 30800/443) wertet den `Host`-Header aus, terminiert TLS mit dem
+Wildcard-Zertifikat und leitet an
 `jellyfin-web.jellyfin.svc.cluster.local:8096` weiter.
 
-> HTTPS/TLS ist hier bewusst nicht konfiguriert (reiner Zugriff über HTTP im
-> Heimnetz/Tailnet). Falls gewünscht, könnte z.B. `cert-manager` mit einer
-> DNS-01-Challenge oder ein selbstsigniertes Zertifikat ergänzt werden.
 
