@@ -1,0 +1,24 @@
+# Web-UI – NodePort, erreichbar über jede Host-IP (u.a. Tailscale) ohne port-forward
+# Zusätzlich explizit über den Tailscale Kubernetes Operator im Tailnet
+# erreichbar unter homeassistant.<dein-tailnet>.ts.net (siehe
+# apps/tailscale-operator/README.md)
+apiVersion: v1
+kind: Service
+metadata:
+  name: homeassistant-web
+  namespace: homeassistant
+  labels:
+    app: homeassistant
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "homeassistant"
+spec:
+  type: NodePort
+  selector:
+    app: homeassistant
+  ports:
+    - name: web
+      port: 8123
+      targetPort: 8123
+      protocol: TCP
+      nodePort: 30123

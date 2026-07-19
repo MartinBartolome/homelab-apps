@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homeassistant
+  namespace: homeassistant
+  labels:
+    app: homeassistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homeassistant
+  strategy:
+    type: Recreate   # Nur eine Instanz, da Config per ReadWriteOnce gemountet ist
+  template:
+    metadata:
+      labels:
+        app: homeassistant
+    spec:
+      initContainers:
+        # Kopiert die Seed-configuration.yaml (ConfigMap) einmalig ins PVC –
+        # nur beim allerersten Start, damit spätere Änderungen über die
+        # HA-UI/den Datei-Editor nicht bei jedem ArgoCD-Sync überschrieben werden.
+        - name: seed-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /config/configuration.yaml ]; then
+                echo "configuration.yaml nicht vorhanden, kopiere Seed..."
+                cp /seed/configuration.yaml /config/configuration.yaml
+              else
+                echo "configuration.yaml bereits vorhanden, überspringe Seed."
+              fi
+          volumeMounts:
+            - name: homeassistant-config
+              mountPath: /config
+            - name: config-seed
+              mountPath: /seed
+        # Installiert die (nicht in HA-Core enthaltenen) Custom-Integrationen
+        # für Dreame-Staubsauger und Dyson-Luftreiniger direkt als
+        # custom_components – ohne manuelle HACS-Installation. Läuft bei
+        # jedem Pod-Start, klont aber nur, falls das jeweilige Verzeichnis
+        # noch fehlt (idempotent, überschreibt keine Updates/Anpassungen).
+        - name: install-custom-integrations
+          image: alpine:3.20
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache git
+              mkdir -p /config/custom_components
+              if [ ! -d /config/custom_components/dreame_vacuum ]; then
+                echo "Installiere Dreame Vacuum Integration..."
+                git clone --depth 1 https://github.com/Tasshack/dreame-vacuum.git /tmp/dreame-vacuum
+                cp -r /tmp/dreame-vacuum/custom_components/dreame_vacuum /config/custom_components/
+              else
+                echo "Dreame Vacuum Integration bereits vorhanden, überspringe."
+              fi
+              if [ ! -d /config/custom_components/dyson_local ]; then
+                echo "Installiere Dyson Integration..."
+                git clone --depth 1 https://github.com/libdyson-wg/ha-dyson.git /tmp/ha-dyson
+                cp -r /tmp/ha-dyson/custom_components/dyson_local /config/custom_components/
+              else
+                echo "Dyson Integration bereits vorhanden, überspringe."
+              fi
+          volumeMounts:
+            - name: homeassistant-config
+              mountPath: /config
+      containers:
+        - name: homeassistant
+          image: ghcr.io/home-assistant/home-assistant:stable
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+          ports:
+            - name: web
+              containerPort: 8123
+              protocol: TCP
+          volumeMounts:
+            - name: homeassistant-config
+              mountPath: /config
+          readinessProbe:
+            httpGet:
+              path: /
+              port: web
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: web
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+      volumes:
+        - name: homeassistant-config
+          persistentVolumeClaim:
+            claimName: homeassistant-config
+        - name: config-seed
+          configMap:
+            name: homeassistant-config-seed

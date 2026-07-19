@@ -43,6 +43,12 @@ homelab-apps/
     │   ├── configmap.yaml
     │   ├── deployment.yaml
     │   └── service.yaml
+    ├── homeassistant/     # Home Assistant Smart-Home-Zentrale
+    │   ├── namespace.yaml
+    │   ├── configmap.yaml
+    │   ├── pvc.yaml
+    │   ├── deployment.yaml
+    │   └── service.yaml
     └── _template/         # Vorlage für neue Apps
         └── README.md
 ```
@@ -57,6 +63,7 @@ homelab-apps/
 | [Jellyfin](apps/jellyfin/) | `jellyfin` | Mediaserver – bindet NAS-Freigaben (`Filme`, `Serien`, `Videos`) per hostPath ein |
 | [Tailscale Operator](apps/tailscale-operator/) | `tailscale` | Erlaubt es, Services per Annotation explizit im Tailnet freizugeben |
 | [nginx](apps/nginx/) | `nginx` | Reverse Proxy, macht Apps über eigene Domains (z.B. `jellyfin.martinbartolome.ch`) im Tailnet erreichbar |
+| [Home Assistant](apps/homeassistant/) | `homeassistant` | Smart-Home-Zentrale (Hue, Tado, Dreame-Staubsauger, Dyson-Luftreiniger) |
 
 ---
 
@@ -109,6 +116,23 @@ Die Ersteinrichtung (Sprache, Admin-User, Bibliotheken) erfolgt manuell über di
 
 ---
 
+## Zugriff auf Home Assistant
+
+Home Assistant läuft ebenfalls als `NodePort`-Service:
+
+```
+http://192.168.68.17:30123
+```
+
+`default_config`, Reverse-Proxy/Tailscale-kompatible URLs sowie die
+Custom-Integrationen für Dreame-Staubsauger und Dyson-Luftreiniger sind
+bereits vorkonfiguriert bzw. vorinstalliert. Ersteinrichtung (Admin-User) und
+das Verbinden von Hue, Tado, Dreame und Dyson (Account-Login bzw.
+Bridge-Taste) erfolgen manuell über die Weboberfläche – Details und Gründe
+dafür: [apps/homeassistant/README.md](apps/homeassistant/README.md).
+
+---
+
 ## Explizite Tailscale-Erreichbarkeit
 
 Bisher war eine App nur "zufällig" via Tailscale erreichbar, weil der Host im Tailnet ist und `NodePort`-Services auf allen Interfaces binden. Mit dem [Tailscale Kubernetes Operator](apps/tailscale-operator/) lässt sich das jetzt **explizit im Manifest deklarieren**:
@@ -122,7 +146,7 @@ metadata:
 
 Details zur (einmaligen) Einrichtung des Operators: [apps/tailscale-operator/README.md](apps/tailscale-operator/README.md).
 
-Bereits so konfiguriert: [Jellyfin](apps/jellyfin/service.yaml) (`jellyfin.<tailnet>.ts.net`) und [Pi-hole](apps/pihole/service.yaml) (Web-UI unter `pihole.<tailnet>.ts.net`, Port 80; DNS unter `pihole-dns.<tailnet>.ts.net`, Port 53).
+Bereits so konfiguriert: [Jellyfin](apps/jellyfin/service.yaml) (`jellyfin.<tailnet>.ts.net`), [Pi-hole](apps/pihole/service.yaml) (Web-UI unter `pihole.<tailnet>.ts.net`, Port 80; DNS unter `pihole-dns.<tailnet>.ts.net`, Port 53) und [Home Assistant](apps/homeassistant/service.yaml) (`homeassistant.<tailnet>.ts.net`).
 
 ---
 
@@ -132,6 +156,10 @@ Zusätzlich zu NodePort und Tailscale-Operator-Hostname ist Jellyfin über einen
 [nginx](apps/nginx/) Reverse Proxy unter `http://jellyfin.martinbartolome.ch`
 erreichbar – im gesamten Heimnetz (WLAN/LAN, z.B. für einen Smart-TV) sowie
 optional auch von unterwegs übers Tailnet.
+
+Nach dem gleichen Prinzip ist auch [Home Assistant](apps/homeassistant/) unter
+`http://homeassistant.martinbartolome.ch` erreichbar (siehe
+[apps/homeassistant/README.md](apps/homeassistant/README.md)).
 
 Der DNS-Eintrag liegt als Code in [apps/pihole/custom-dns-configmap.yaml](apps/pihole/custom-dns-configmap.yaml)
 (kein manueller Schritt in der Pi-hole-UI nötig). Details, Voraussetzungen
@@ -158,6 +186,12 @@ kubectl get all -n jellyfin
 
 # Logs Jellyfin
 kubectl logs -n jellyfin -l app=jellyfin -f
+
+# Home Assistant Status
+kubectl get all -n homeassistant
+
+# Logs Home Assistant
+kubectl logs -n homeassistant -l app=homeassistant -f
 
 # Manuell sync erzwingen (normalerweise nicht nötig)
 kubectl annotate application pihole -n argocd argocd.argoproj.io/refresh=hard

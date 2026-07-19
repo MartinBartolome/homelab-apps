@@ -13,3 +13,4 @@ metadata:
 data:
   custom.list: |
     192.168.68.17 jellyfin.martinbartolome.ch
+    192.168.68.17 homeassistant.martinbartolome.ch

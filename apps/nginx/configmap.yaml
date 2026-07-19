@@ -37,3 +37,30 @@ data:
         proxy_send_timeout 300s;
       }
     }
+  homeassistant.conf: |
+    server {
+      listen 80;
+      listen 443 ssl;
+      server_name homeassistant.martinbartolome.ch;
+
+      # Selbstsigniertes Zertifikat (siehe deployment.yaml initContainer) -
+      # Browser zeigt eine Sicherheitswarnung, Verbindung ist aber verschlüsselt.
+      ssl_certificate /etc/nginx/certs/tls.crt;
+      ssl_certificate_key /etc/nginx/certs/tls.key;
+
+      location / {
+        proxy_pass http://homeassistant-web.homeassistant.svc.cluster.local:8123;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket-Support (Home Assistant nutzt es für Live-Updates)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+      }
+    }

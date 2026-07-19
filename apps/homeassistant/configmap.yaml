@@ -1,0 +1,58 @@
+# Seed für /config/configuration.yaml – wird von deployment.yaml
+# (initContainer "seed-config") nur beim ALLERERSTEN Start in das
+# PersistentVolume kopiert (sofern configuration.yaml dort noch nicht
+# existiert). Spätere Änderungen über die HA-UI/den Datei-Editor werden
+# dadurch von ArgoCD-Syncs NICHT überschrieben.
+#
+# Um die Seed-Konfiguration nach dem ersten Start zu ändern, entweder direkt
+# in Home Assistant (UI/Datei-Editor) anpassen, oder die Datei im
+# PersistentVolume löschen und den Pod neu starten, damit sie erneut aus
+# dieser ConfigMap kopiert wird.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homeassistant-config-seed
+  namespace: homeassistant
+data:
+  configuration.yaml: |
+    # Standard-Integrationen (Verlauf, Logbuch, Automatisierungen, Frontend, ...)
+    default_config:
+
+    # Name, Zeitzone, Standort, Admin-Benutzer etc. werden einmalig im
+    # Einrichtungsassistenten (UI) beim ersten Aufruf festgelegt.
+
+    # Notwendig, damit der Login über den nginx-Reverse-Proxy (apps/nginx) und
+    # den Tailscale-Operator-Hostnamen funktioniert – ohne das schlägt HA den
+    # Request mit "400: Bad Request" (ungültiger Host-Header) fehl.
+    http:
+      use_x_forwarded_for: true
+      trusted_proxies:
+        # Pod-Subnetz des k3s-Clusters (Standard-CIDR). nginx läuft als Pod
+        # im Cluster, seine Quell-IP liegt daher in diesem Netz. Falls euer
+        # Cluster ein anderes Pod-CIDR verwendet, hier anpassen
+        # (kubectl cluster-info dump | grep -m1 cluster-cidr).
+        - 10.42.0.0/16
+
+    # Eigene Domain (apps/nginx + apps/pihole/custom-dns-configmap.yaml) sowie
+    # Tailscale-Hostname (siehe service.yaml), damit HA überall die richtige
+    # URL zurückgibt (z.B. für die mobile App oder Weiterleitungen).
+    homeassistant:
+      external_url: "https://homeassistant.martinbartolome.ch"
+      internal_url: "http://homeassistant.martinbartolome.ch"
+
+    # Philips Hue, Tado, Dreame-Staubsauger ("Dreame Vacuum") und
+    # Dyson-Luftreiniger ("Dyson") werden bewusst NICHT hier per YAML
+    # eingerichtet, sondern über Config-Flows in der UI
+    # (Einstellungen → Geräte & Dienste → Integration hinzufügen):
+    #
+    #   - Philips Hue: wird im lokalen Netz automatisch erkannt; beim
+    #     Verbinden muss die physische Taste auf der Bridge gedrückt werden
+    #     (Pairing kann aus Sicherheitsgründen nicht automatisiert werden).
+    #   - Tado: Zugangsdaten werden interaktiv über die HA-UI abgefragt und
+    #     dort verschlüsselt gespeichert (Zugangsdaten gehören NICHT in Git).
+    #   - Dreame Vacuum / Dyson: die Custom-Integrationen sind bereits
+    #     vorinstalliert (siehe deployment.yaml, initContainer
+    #     "install-custom-integrations") und erscheinen direkt in der
+    #     Integrationssuche, keine manuelle HACS-Installation nötig.
+    #
+    # Details und Links: README.md in diesem Verzeichnis.
