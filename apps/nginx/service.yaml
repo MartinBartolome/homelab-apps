@@ -1,6 +1,9 @@
 # LoadBalancer (k3s ServiceLB) auf Standard-Port 80, damit der Browser ohne
 # expliziten Port zugreifen kann. Voraussetzung: Traefik (k3s-Standard-Ingress,
 # belegt sonst Port 80/443) ist deaktiviert, siehe homelab-setup/roles/k3s.
+# Zusätzlich explizit über den Tailscale Kubernetes Operator im Tailnet
+# erreichbar unter nginx.<dein-tailnet>.ts.net (siehe
+# apps/tailscale-operator/README.md).
 apiVersion: v1
 kind: Service
 metadata:
@@ -8,6 +11,9 @@ metadata:
   namespace: nginx
   labels:
     app: nginx
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "nginx"
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local

@@ -7,6 +7,9 @@ Aktuell konfiguriert: [`apps/nginx/configmap.yaml`](configmap.yaml) – ein
 `server{}`-Block pro Domain/App. Weitere Apps: einfach eine weitere `.conf`
 unter `data:` in der ConfigMap ergänzen.
 
+Bereits eingerichtet: `jellyfin.martinbartolome.ch`, `homeassistant.martinbartolome.ch`
+und `pihole.martinbartolome.ch`.
+
 ## Warum nginx statt Tailscale-Operator-Hostname?
 
 Der Tailscale Operator (`apps/tailscale-operator/`) macht Jellyfin bereits unter
@@ -25,6 +28,8 @@ Pi-hole-Web-UI mehr nötig.
 
 ```
 192.168.68.17 jellyfin.martinbartolome.ch
+192.168.68.17 homeassistant.martinbartolome.ch
+192.168.68.17 pihole.martinbartolome.ch
 ```
 
 Es wird bewusst die **LAN-IP** des Homelab-Hosts eingetragen (nicht die
@@ -46,9 +51,14 @@ greift, muss Pi-hole als DNS-Server für das jeweilige Gerät genutzt werden:
 > wäre auf den Bereich 30000–32767 beschränkt.
 
 
-nginx läuft als `NodePort` (Port `30800`) und ist damit automatisch über jede
-Host-IP erreichbar (LAN- wie Tailscale-IP) – kein zusätzliches Setup nötig
-(gleiches Prinzip wie bei [Jellyfin](../jellyfin/) und [Pi-hole](../pihole/)).
+nginx läuft als `LoadBalancer` (k3s ServiceLB) auf Port 80/443 und ist damit
+automatisch über jede Host-IP erreichbar (LAN- wie Tailscale-IP) – kein
+zusätzliches Setup nötig (gleiches Prinzip wie bei [Jellyfin](../jellyfin/)
+und [Pi-hole](../pihole/)). Zusätzlich ist der `nginx-web`-Service explizit
+über den Tailscale Kubernetes Operator im Tailnet freigegeben
+(`nginx.<dein-tailnet>.ts.net`, siehe
+[apps/tailscale-operator/README.md](../tailscale-operator/README.md)) – wie
+bei allen anderen Apps in diesem Repo.
 
 > Nach einer Änderung an `custom-dns-configmap.yaml` greift der neue Inhalt
 > erst nach einem Reload/Neustart des Pi-hole-Pods (siehe Kommentar in der
@@ -76,7 +86,7 @@ nicht per Git abbildbar – in der
 
 ## TLS-Zertifikat einspielen/erneuern
 
-Beide Vhosts (`jellyfin.conf`, `homeassistant.conf`) nutzen ein echtes,
+Alle Vhosts (`jellyfin.conf`, `homeassistant.conf`, `pihole.conf`) nutzen ein echtes,
 öffentlich vertrauenswürdiges **Wildcard-Zertifikat** `*.martinbartolome.ch`
 (Sectigo, ausgestellt über IONOS) – dadurch gibt es **keine**
 Zertifikatswarnung mehr, im Gegensatz zu einem selbstsignierten Zertifikat.
@@ -123,9 +133,14 @@ und überschreibt/löscht es daher auch nicht.
 ## Ergebnis
 
 Im Heimnetz (WLAN/LAN, inkl. TV) kann `https://jellyfin.martinbartolome.ch`
-öffnen → Pi-hole löst die Domain zur LAN-IP des Homelab-Hosts auf → nginx
-(Port 30800/443) wertet den `Host`-Header aus, terminiert TLS mit dem
-Wildcard-Zertifikat und leitet an
-`jellyfin-web.jellyfin.svc.cluster.local:8096` weiter.
+(ebenso `https://homeassistant.martinbartolome.ch` und
+`https://pihole.martinbartolome.ch`) geöffnet werden → Pi-hole löst die
+Domain zur LAN-IP des Homelab-Hosts auf → nginx (Port 80/443) wertet den
+`Host`-Header aus, terminiert TLS mit dem Wildcard-Zertifikat und leitet an
+den passenden internen Service weiter (z.B.
+`jellyfin-web.jellyfin.svc.cluster.local:8096`). Zusätzlich ist jede App
+(inkl. nginx selbst) explizit über den Tailscale Kubernetes Operator im
+Tailnet erreichbar – so sind alle Apps sowohl über die eigene Domain als
+auch im Tailnet verfügbar.
 
 

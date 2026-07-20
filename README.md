@@ -146,7 +146,7 @@ metadata:
 
 Details zur (einmaligen) Einrichtung des Operators: [apps/tailscale-operator/README.md](apps/tailscale-operator/README.md).
 
-Bereits so konfiguriert: [Jellyfin](apps/jellyfin/service.yaml) (`jellyfin.<tailnet>.ts.net`), [Pi-hole](apps/pihole/service.yaml) (Web-UI unter `pihole.<tailnet>.ts.net`, Port 80; DNS unter `pihole-dns.<tailnet>.ts.net`, Port 53) und [Home Assistant](apps/homeassistant/service.yaml) (`homeassistant.<tailnet>.ts.net`).
+Bereits so konfiguriert: [Jellyfin](apps/jellyfin/service.yaml) (`jellyfin.<tailnet>.ts.net`), [Pi-hole](apps/pihole/service.yaml) (Web-UI unter `pihole.<tailnet>.ts.net`, Port 80; DNS unter `pihole-dns.<tailnet>.ts.net`, Port 53), [Home Assistant](apps/homeassistant/service.yaml) (`homeassistant.<tailnet>.ts.net`) und [nginx](apps/nginx/service.yaml) selbst (`nginx.<tailnet>.ts.net`) – damit ist jede App im Repo explizit im Tailnet erreichbar.
 
 ---
 
@@ -159,7 +159,9 @@ optional auch von unterwegs übers Tailnet.
 
 Nach dem gleichen Prinzip ist auch [Home Assistant](apps/homeassistant/) unter
 `http://homeassistant.martinbartolome.ch` erreichbar (siehe
-[apps/homeassistant/README.md](apps/homeassistant/README.md)).
+[apps/homeassistant/README.md](apps/homeassistant/README.md)) sowie [Pi-hole](apps/pihole/)
+unter `http://pihole.martinbartolome.ch`. Damit sind alle Apps mit Web-UI
+sowohl über die eigene Domain als auch explizit im Tailnet erreichbar.
 
 Der DNS-Eintrag liegt als Code in [apps/pihole/custom-dns-configmap.yaml](apps/pihole/custom-dns-configmap.yaml)
 (kein manueller Schritt in der Pi-hole-UI nötig). Details, Voraussetzungen
