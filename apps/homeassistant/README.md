@@ -13,12 +13,17 @@ Smart-Home-Zentrale. Läuft als einzelne Instanz mit persistenter Config
   `use_x_forwarded_for` sowie `external_url`/`internal_url` sind gesetzt
   (siehe [`configmap.yaml`](configmap.yaml)), sonst schlägt der Login über
   `homeassistant.martinbartolome.ch` mit *"400: Bad Request"* fehl.
+- **HACS (Home Assistant Community Store)** – wird per `initContainer`
+  automatisch als `custom_component` nach `/config/custom_components/hacs`
+  installiert (siehe [`deployment.yaml`](deployment.yaml)). Die einmalige
+  Aktivierung (GitHub-Account verknüpfen) ist dennoch ein interaktiver
+  Schritt, siehe [unten](#was-muss-manuell-eingerichtet-werden--und-warum).
 - **Dreame-Staubsauger & Dyson-Luftreiniger** – die dafür nötigen
   Custom-Integrationen ([`Tasshack/dreame-vacuum`](https://github.com/Tasshack/dreame-vacuum)
   und [`libdyson-wg/ha-dyson`](https://github.com/libdyson-wg/ha-dyson)) werden
-  per `initContainer` automatisch nach `/config/custom_components` installiert
-  (siehe [`deployment.yaml`](deployment.yaml)) – keine manuelle HACS-Installation
-  nötig, sie erscheinen direkt in der Integrationssuche.
+  ebenfalls per `initContainer` automatisch nach `/config/custom_components`
+  installiert (siehe [`deployment.yaml`](deployment.yaml)) – unabhängig von
+  HACS, sie erscheinen direkt in der Integrationssuche.
 
 ## Was muss manuell eingerichtet werden – und warum
 
@@ -29,20 +34,30 @@ erfordern (die aus Sicherheitsgründen nicht im Repo landen sollten):
 1. **Ersteinrichtung** (nach dem ersten Start): Sprache, Standort/Zeitzone,
    Admin-Benutzer – über den Einrichtungsassistenten unter
    `http://<homelab-ip>:30123` bzw. `http://homeassistant.martinbartolome.ch`.
-2. **Philips Hue**: *Einstellungen → Geräte & Dienste → Integration
+2. **HACS aktivieren**: HACS ist zwar bereits als Integration installiert
+   (siehe oben), die Erstaktivierung erfordert aber einen interaktiven
+   GitHub-Login (Device-Code-Verfahren), der aus Sicherheitsgründen nicht
+   automatisiert werden kann. Nach einem Neustart von HA: *Einstellungen →
+   Geräte & Dienste → Integration hinzufügen → HACS* und den Anweisungen
+   folgen (GitHub-Konto verknüpfen, ggf. HA neu starten).
+   > Hinweis: War `/config/custom_components/hacs` beim allerersten
+   > Deployment (vor dem ersten HA-Start) noch nicht vorhanden, installiert
+   > der `initContainer` HACS erst beim nächsten Pod-Neustart, da HACS
+   > selbst eine bereits gestartete HA-Instanz voraussetzt.
+3. **Philips Hue**: *Einstellungen → Geräte & Dienste → Integration
    hinzufügen → Philips Hue*. Die Bridge wird im lokalen Netz automatisch
    gefunden, danach die physische Taste auf der Bridge drücken (Pairing
    kann aus Sicherheitsgründen der Bridge nicht automatisiert werden).
-3. **Tado**: *Integration hinzufügen → Tado* – Tado-Account-Zugangsdaten
+4. **Tado**: *Integration hinzufügen → Tado* – Tado-Account-Zugangsdaten
    interaktiv eingeben. HA speichert sie verschlüsselt lokal; sie gehören
    nicht in Git.
-4. **Dreame-Staubsauger**: *Integration hinzufügen → Dreame Vacuum* – je nach
+5. **Dreame-Staubsauger**: *Integration hinzufügen → Dreame Vacuum* – je nach
    Modell per Cloud-Account-Login oder lokalem Token (siehe
    [Doku](https://github.com/Tasshack/dreame-vacuum#configuration)).
-5. **Dyson-Luftreiniger**: *Integration hinzufügen → Dyson* – Setup per
+6. **Dyson-Luftreiniger**: *Integration hinzufügen → Dyson* – Setup per
    MyDyson-Account-Login oder WLAN-Sticker-Daten des Geräts (siehe
    [Doku](https://github.com/libdyson-wg/ha-dyson#setup)).
-6. **Matter / TadoX-Bridge**: *Integration hinzufügen → Matter (BETA)* –
+7. **Matter / TadoX-Bridge**: *Integration hinzufügen → Matter (BETA)* –
    als Server-URL `ws://localhost:5580/ws` eingeben (der Matter Server läuft
    als Sidecar-Container im selben Pod, siehe [`deployment.yaml`](deployment.yaml)),
    anschließend den Pairing-/Setup-Code der TadoX-Bridge eingeben (App oder

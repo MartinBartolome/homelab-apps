@@ -47,11 +47,44 @@ spec:
               mountPath: /config
             - name: config-seed
               mountPath: /seed
+        # Installiert HACS (Home Assistant Community Store) als
+        # custom_component – lädt das offizielle Release-ZIP von
+        # hacs/integration und entpackt es nach
+        # /config/custom_components/hacs (entspricht dem, was das
+        # offizielle Installationsskript get.hacs.xyz tut). Läuft bei jedem
+        # Pod-Start, aber nur solange /config/custom_components/hacs noch
+        # nicht existiert (idempotent, überschreibt keine Updates).
+        #
+        # Das offizielle Skript selbst wird hier bewusst nicht verwendet,
+        # da es eine bereits von HA erzeugte .HA_VERSION-Datei im
+        # Config-Verzeichnis voraussetzt, um dieses zu erkennen – die
+        # existiert beim allerersten Deployment (vor dem ersten HA-Start)
+        # noch nicht.
+        - name: install-hacs
+          image: alpine:3.20
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache curl unzip
+              if [ ! -d /config/custom_components/hacs ]; then
+                echo "Installiere HACS..."
+                mkdir -p /config/custom_components/hacs
+                curl -sL https://github.com/hacs/integration/releases/latest/download/hacs.zip -o /tmp/hacs.zip
+                unzip -oq /tmp/hacs.zip -d /config/custom_components/hacs
+                rm -f /tmp/hacs.zip
+              else
+                echo "HACS bereits vorhanden, überspringe."
+              fi
+          volumeMounts:
+            - name: homeassistant-config
+              mountPath: /config
         # Installiert die (nicht in HA-Core enthaltenen) Custom-Integrationen
         # für Dreame-Staubsauger und Dyson-Luftreiniger direkt als
-        # custom_components – ohne manuelle HACS-Installation. Läuft bei
-        # jedem Pod-Start, klont aber nur, falls das jeweilige Verzeichnis
-        # noch fehlt (idempotent, überschreibt keine Updates/Anpassungen).
+        # custom_components (unabhängig von HACS installiert, siehe oben
+        # für HACS selbst). Läuft bei jedem Pod-Start, klont aber nur, falls
+        # das jeweilige Verzeichnis noch fehlt (idempotent, überschreibt
+        # keine Updates/Anpassungen).
         - name: install-custom-integrations
           image: alpine:3.20
           command:
