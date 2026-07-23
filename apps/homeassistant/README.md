@@ -44,6 +44,11 @@ erfordern (die aus Sicherheitsgründen nicht im Repo landen sollten):
    > Deployment (vor dem ersten HA-Start) noch nicht vorhanden, installiert
    > der `initContainer` HACS erst beim nächsten Pod-Neustart, da HACS
    > selbst eine bereits gestartete HA-Instanz voraussetzt.
+   > **Taucht HACS nicht in der Integrationssuche auf?** Das Frontend
+   > cached die Liste verfügbarer Integrationen im Browser – ein
+   > Hard-Refresh (`Strg`/`Cmd` + `Shift` + `R`) bzw. Leeren des
+   > Browser-Caches ist laut [offizieller HACS-Doku](https://www.hacs.xyz/docs/use/configuration/basic/)
+   > zwingend nötig, damit HACS in der Suche erscheint.
 3. **Philips Hue**: *Einstellungen → Geräte & Dienste → Integration
    hinzufügen → Philips Hue*. Die Bridge wird im lokalen Netz automatisch
    gefunden, danach die physische Taste auf der Bridge drücken (Pairing

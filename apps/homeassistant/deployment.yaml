@@ -116,6 +116,16 @@ spec:
           env:
             - name: TZ
               value: "Europe/Berlin"
+          # NET_ADMIN/NET_RAW werden vom Bluetooth-Integration-Backend
+          # (habluetooth) benötigt, um den Host-Bluetooth-Adapter zu
+          # verwalten (z.B. HCI-Reset bei Verbindungsproblemen). Ohne diese
+          # Capabilities schlägt das Setup mit "Missing NET_ADMIN/NET_RAW
+          # capabilities for Bluetooth management" fehl.
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_RAW
           ports:
             - name: web
               containerPort: 8123
@@ -129,18 +139,20 @@ spec:
               port: web
             initialDelaySeconds: 30
             periodSeconds: 10
+            failureThreshold: 12
           livenessProbe:
             httpGet:
               path: /
               port: web
             initialDelaySeconds: 60
             periodSeconds: 30
+            failureThreshold: 6
           resources:
             requests:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "250m"
             limits:
-              memory: "1Gi"
+              memory: "2Gi"
               cpu: "1000m"
         # Matter Server: eigenständiger WebSocket-Dienst, mit dem sich die
         # "Matter"-Integration in HA verbindet (HA-Core spricht kein Matter
